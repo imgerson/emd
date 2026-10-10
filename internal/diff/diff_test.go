@@ -60,6 +60,13 @@ func TestUnified(t *testing.T) {
 	}
 }
 
+func TestUnifiedEmptySideStartsAtThePreviousLine(t *testing.T) {
+	got := Unified(Lines("a\nb\nc", "a\nb\nX\nc"), "x", "y", 0)
+	if !strings.Contains(got, "@@ -2,0 +3,1 @@") {
+		t.Fatalf("pure addition header wrong:\n%s", got)
+	}
+}
+
 func TestUnifiedSplitsDistantHunks(t *testing.T) {
 	a := "a\nb\nc\nd\ne\nf\ng\nh\ni\nj"
 	b := "A\nb\nc\nd\ne\nf\ng\nh\ni\nJ"

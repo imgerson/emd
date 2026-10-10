@@ -18,7 +18,6 @@ cat > "$work/tap/Formula/emd.rb" <<RUBY
 class Emd < Formula
   desc "Command-line client for easymarkdown (easymarkdown.io)"
   homepage "https://easymarkdown.io/docs/api"
-  version "$ver"
 
   on_macos do
     on_arm do

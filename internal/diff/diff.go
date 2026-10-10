@@ -161,7 +161,14 @@ func Unified(ops []Op, fromName, toName string, context int) string {
 				nb++
 			}
 		}
-		fmt.Fprintf(&b, "@@ -%d,%d +%d,%d @@\n", at[start].a, na, at[start].b, nb)
+		sa, sb := at[start].a, at[start].b
+		if na == 0 { // GNU diff/patch: an empty side starts at the line before
+			sa--
+		}
+		if nb == 0 {
+			sb--
+		}
+		fmt.Fprintf(&b, "@@ -%d,%d +%d,%d @@\n", sa, na, sb, nb)
 		for _, o := range ops[start:end] {
 			b.WriteByte(o.Kind)
 			b.WriteString(o.Text)

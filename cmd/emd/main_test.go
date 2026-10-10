@@ -204,6 +204,15 @@ func TestConfig(t *testing.T) {
 	}
 }
 
+func TestDoubleDashEndsFlagsAndJSON(t *testing.T) {
+	fs := flag.NewFlagSet("t", flag.ContinueOnError)
+	title := fs.String("title", "", "")
+	pos, err := parse(fs, []string{"--title", "x", "--", "--weird-file", "--json"})
+	if err != nil || *title != "x" || strings.Join(pos, ",") != "--weird-file,--json" {
+		t.Fatalf("pos %v title %q err %v", pos, *title, err)
+	}
+}
+
 func TestParseTakesFlagsAnywhere(t *testing.T) {
 	fs := flag.NewFlagSet("t", flag.ContinueOnError)
 	since := fs.String("if-unchanged-since", "", "")
@@ -216,6 +225,12 @@ func TestParseTakesFlagsAnywhere(t *testing.T) {
 func TestExportNames(t *testing.T) {
 	if got := safeName(` a/b:c*? `); got != "a-b-c--" {
 		t.Errorf("safeName = %q", got)
+	}
+	if got := safeName(strings.Repeat("😀", 50)); got != strings.Repeat("😀", 50) {
+		t.Errorf("multibyte titles must not panic or be cut under 100 runes: %q", got)
+	}
+	if got := []rune(safeName(strings.Repeat("漢", 150))); len(got) != 100 {
+		t.Errorf("long titles are cut to 100 runes, got %d", len(got))
 	}
 	if got := safeName(" .. "); got != "Untitled" {
 		t.Errorf("empty name = %q", got)

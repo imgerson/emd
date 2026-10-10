@@ -91,8 +91,8 @@ func safeName(s string) string {
 	if s == "" {
 		s = "Untitled"
 	}
-	if len(s) > 120 {
-		s = strings.TrimSpace(string([]rune(s)[:100]))
+	if r := []rune(s); len(r) > 100 {
+		s = strings.TrimSpace(string(r[:100]))
 	}
 	return s
 }
