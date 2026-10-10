@@ -53,8 +53,10 @@ history:
 
 ```bash
 emd login < key.txt
-EMD_TOKEN=12|emd_… emd ls          # CI and agents
+EMD_TOKEN='12|emd_…' emd ls        # CI and agents
 ```
+
+Keys contain a `|`, so always quote them in a shell.
 
 Each key is limited to 60 requests a minute; `emd` slows down as it gets close and waits once
 on `429`. Your browser has its own limit, so a script never slows the editor down.

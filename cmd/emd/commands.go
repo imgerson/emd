@@ -145,16 +145,24 @@ func cmdTree(a *app, args []string) error {
 		return err
 	}
 	inFolder := map[int64][]api.Document{}
+	var shown []api.Document
 	for _, d := range docs {
 		if *archived || d.Status != "archived" {
 			inFolder[parentKey(d.FolderID)] = append(inFolder[parentKey(d.FolderID)], d)
+			shown = append(shown, d)
 		}
 	}
 	for k := range inFolder {
 		sort.SliceStable(inFolder[k], func(i, j int) bool { return inFolder[k][i].Position < inFolder[k][j].Position })
 	}
 	if a.json {
-		return a.emitJSON(map[string]any{"folders": t.folders, "documents": docs})
+		var folders []api.Folder
+		for _, f := range t.folders {
+			if *archived || f.Status != "archived" {
+				folders = append(folders, f)
+			}
+		}
+		return a.emitJSON(map[string]any{"folders": folders, "documents": shown})
 	}
 
 	var walk func(parent int64, depth int)

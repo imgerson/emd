@@ -76,9 +76,14 @@ func main() {
 }
 
 func run(args []string, in io.Reader, out, errOut io.Writer, getenv func(string) string) int {
+	// --json can go anywhere before a literal "--"; after it, it's an ordinary argument.
 	jsonOut := false
 	var rest []string
-	for _, a := range args {
+	for i, a := range args {
+		if a == "--" {
+			rest = append(rest, args[i:]...)
+			break
+		}
 		if a == "--json" {
 			jsonOut = true
 			continue
@@ -167,15 +172,20 @@ func parse(fs *flag.FlagSet, args []string) ([]string, error) {
 	fs.SetOutput(io.Discard)
 	var pos []string
 	for {
+		before := len(args)
 		if err := fs.Parse(args); err != nil {
 			return nil, usageError{err.Error()}
 		}
-		args = fs.Args()
-		if len(args) == 0 {
+		rest := fs.Args()
+		// fs.Parse swallowed a "--": everything after it is positional, even "--weird".
+		if consumed := before - len(rest); consumed > 0 && args[consumed-1] == "--" {
+			return append(pos, rest...), nil
+		}
+		if len(rest) == 0 {
 			return pos, nil
 		}
-		pos = append(pos, args[0])
-		args = args[1:]
+		pos = append(pos, rest[0])
+		args = rest[1:]
 	}
 }
 
@@ -260,9 +270,14 @@ func (a *app) emitJSON(v any) error {
 	return nil
 }
 
-// readInput reads FILE, or stdin for "-" or no argument.
+// readInput reads FILE, or stdin for "-" or no argument. It refuses to wait on a terminal.
 func (a *app) readInput(arg string) (string, error) {
 	if arg == "" || arg == "-" {
+		if f, ok := a.in.(*os.File); ok {
+			if st, err := f.Stat(); err == nil && st.Mode()&os.ModeCharDevice != 0 {
+				return "", usagef("pass a FILE, or pipe the content in (-)")
+			}
+		}
 		b, err := io.ReadAll(a.in)
 		return string(b), err
 	}
