@@ -61,6 +61,9 @@ func (f *fake) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		b, _ := io.ReadAll(r.Body)
 		f.content, f.lock = string(b), "2026-10-09T12:00:00.000000Z"
 		io.WriteString(w, `{"id":10}`)
+	case r.URL.Path == "/search":
+		// A snippet is cut from content, which may hold anything, terminal escapes included.
+		io.WriteString(w, `{"folders":[],"documents":[{"id":10,"status":"draft","path":"Site","title":"A","snippet":"x \u001b]52;c;ZXZpbA==\u0007 \u009b2J y"}]}`)
 	default:
 		w.WriteHeader(404)
 		io.WriteString(w, `{"message":"Not found.","code":"not_found"}`)
@@ -248,3 +251,14 @@ func TestExportNames(t *testing.T) {
 }
 
 func ptr(n int64) *int64 { return &n }
+
+func TestSearchSnippetCannotDriveTheTerminal(t *testing.T) {
+	_, emd := setup(t)
+	code, out, _ := emd("search", "x")
+	if code != 0 || !strings.Contains(out, "x ?]52;c;ZXZpbA==? ?2J y") {
+		t.Fatalf("code %d, want the snippet with its control characters replaced:\n%q", code, out)
+	}
+	if strings.ContainsAny(out, "\x1b\x07\u009b") {
+		t.Fatalf("control characters reached the terminal: %q", out)
+	}
+}
