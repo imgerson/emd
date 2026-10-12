@@ -20,8 +20,9 @@ emd ls      [--folder ID|PATH|none] [--status S] [--archived]
 emd tree    [--archived]                     projects > folders > documents, with IDs
 emd search  QUERY
 emd get     ID [-o FILE]                     the Markdown, byte for byte
-emd show    ID
-emd new     --title T [--folder ID|PATH] [--status S] [FILE|-]      prints the new ID
+emd show    ID                               details, with the document's link
+emd open    ID [--print]                     open the document in your browser (--print: only print the link)
+emd new     --title T [--folder ID|PATH] [--status S] [FILE|-]      prints the new ID (the link on stderr)
 emd put     ID [FILE|-] [--if-unchanged-since T]
 emd status  ID draft|review|approved|done|archived
 emd rename  ID TITLE
@@ -40,6 +41,12 @@ emd export  DIR                              every document as DIR/Project/Folde
 Add `--json` to any command to get the API's JSON on stdout (errors go to stderr, as the API
 sent them). Folders can be named by ID or by path; a path that matches more than one folder is
 an error that lists their IDs.
+
+Every document has a link, `https://easymarkdown.io/dashboard?doc=ID`, that opens it in the
+workspace (after signing in, if needed). `show` and `open` print it; `new` and `put` print it on
+stderr, so `ID=$(emd new ...)` still captures just the ID. In a terminal that supports OSC 8
+hyperlinks it is clickable; piped or redirected it is the plain URL, and `--json` output is the
+API's JSON as always (with the link in its `url` field).
 
 `put` never overwrites edits made in the browser: it reads the document's version first and
 sends it back, and if the document changed in between it stops with exit code 3.
@@ -83,6 +90,7 @@ P=$(emd mkdir "$(basename "$PWD")")
 ID=$(emd ls --folder "$P" --json | jq -r '.data[] | select(.title=="Plan") | .id')
 if [ -n "$ID" ]; then emd put "$ID" plan.md; else emd new --title Plan --folder "$P" --status review plan.md; fi
 
+emd open "$ID" --print      # the link to hand to the user
 emd get "$ID" > plan.md     # next session
 emd diff "$ID"              # what changed last
 ```

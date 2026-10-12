@@ -244,6 +244,7 @@ type Document struct {
 	WordCount      int     `json:"word_count"`
 	UpdatedAt      string  `json:"updated_at"`
 	LastAccessedAt *string `json:"last_accessed_at,omitempty"`
+	URL            string  `json:"url,omitempty"`
 }
 
 type Folder struct {
