@@ -25,6 +25,17 @@ func docURL(base string, d api.Document) string {
 	return fmt.Sprintf("%s/dashboard?doc=%d", strings.TrimSuffix(strings.TrimRight(base, "/"), "/api/v1"), d.ID)
 }
 
+// noControls replaces control characters (C0 and C1, so ESC, BEL and 8-bit CSI too) with '?', so
+// text from the server can't drive the terminal it is printed to.
+func noControls(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return '?'
+		}
+		return r
+	}, s)
+}
+
 // hyperlink wraps u in an OSC 8 escape so terminals that support it make it clickable (the
 // others show the text as is). Only for a terminal: pipes and files get the plain URL.
 func hyperlink(u string, tty bool) string {
