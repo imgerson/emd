@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/url"
@@ -278,8 +279,9 @@ func cmdShow(a *app, args []string) error {
 		return err
 	}
 	w := a.table()
-	fmt.Fprintf(w, "id\t%d\ntitle\t%s\nfolder\t%s\nstatus\t%s\nwords\t%d\nupdated_at\t%s\n",
-		d.ID, d.Title, t.path(parentKey(d.FolderID)), d.Status, d.WordCount, d.UpdatedAt)
+	fmt.Fprintf(w, "id\t%d\ntitle\t%s\nfolder\t%s\nstatus\t%s\nwords\t%d\nupdated_at\t%s\nurl\t%s\n",
+		d.ID, d.Title, t.path(parentKey(d.FolderID)), d.Status, d.WordCount, d.UpdatedAt,
+		hyperlink(docURL(a.client.Base, d), isTerminal(a.out)))
 	return w.Flush()
 }
 
@@ -332,6 +334,7 @@ func cmdNew(a *app, args []string) error {
 		return nil
 	}
 	fmt.Fprintln(a.out, d.ID)
+	a.printLink(a.errOut, d) // stderr: stdout stays just the ID, for ID=$(emd new ...)
 	return nil
 }
 
@@ -369,7 +372,11 @@ func cmdPut(a *app, args []string) error {
 	}
 	if a.json {
 		a.printJSON(raw)
+		return nil
 	}
+	d := api.Document{ID: n}
+	_ = json.Unmarshal(raw, &d) // only for the link; docURL falls back on the ID
+	a.printLink(a.errOut, d)
 	return nil
 }
 

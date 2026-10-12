@@ -45,6 +45,8 @@ func (f *fake) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else {
 			io.WriteString(w, `{"data":[{"id":11,"folder_id":null,"title":"B","status":"archived","updated_at":"2026-10-09T09:00:00.000000Z"}],"meta":{"next_cursor":null}}`)
 		}
+	case r.URL.Path == "/documents/10" && r.Method == "GET":
+		io.WriteString(w, `{"id":10,"folder_id":2,"title":"A","status":"draft","word_count":1,"updated_at":"2026-10-09T10:00:00.000000Z"}`)
 	case r.URL.Path == "/documents/10/content" && r.Method == "GET":
 		w.Header().Set("X-Updated-At", f.lock)
 		io.WriteString(w, f.content)

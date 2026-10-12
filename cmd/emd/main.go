@@ -52,9 +52,10 @@ func init() {
 		"tree":     {"tree [--archived]", "projects, folders and documents, with IDs and statuses", cmdTree, false},
 		"search":   {"search QUERY", "search folder names and document titles and content", cmdSearch, false},
 		"get":      {"get ID [-o FILE]", "print a document's Markdown (or write it to FILE)", cmdGet, false},
-		"show":     {"show ID", "a document's details", cmdShow, false},
-		"new":      {"new --title T [--folder ID|PATH] [--status S] [FILE|-]", "create a document", cmdNew, false},
-		"put":      {"put ID [FILE|-] [--if-unchanged-since T]", "replace a document's content (never overwrites newer edits)", cmdPut, false},
+		"show":     {"show ID", "a document's details, with its link", cmdShow, false},
+		"open":     {"open ID [--print]", "open a document in the browser and print its link (--print: only print)", cmdOpen, false},
+		"new":      {"new --title T [--folder ID|PATH] [--status S] [FILE|-]", "create a document: its ID on stdout, its link on stderr", cmdNew, false},
+		"put":      {"put ID [FILE|-] [--if-unchanged-since T]", "replace a document's content (never overwrites newer edits); its link on stderr", cmdPut, false},
 		"status":   {"status ID STATUS", "set a status: draft, review, approved, done, archived", cmdStatus, false},
 		"rename":   {"rename ID TITLE", "rename a document", cmdRename, false},
 		"mv":       {"mv ID --folder ID|PATH|none [--top|--bottom|--before ID|--after ID]", "move or reorder a document", cmdMv, false},
@@ -150,13 +151,14 @@ func hint(err error) string {
 
 func printHelp(w io.Writer) {
 	fmt.Fprintf(w, "emd %s: the command line for easymarkdown\n\nusage: emd COMMAND [ARGS] [--json]\n\n", version)
-	names := []string{"login", "ls", "tree", "search", "get", "show", "new", "put", "status", "rename", "mv", "rm",
+	names := []string{"login", "ls", "tree", "search", "get", "show", "open", "new", "put", "status", "rename", "mv", "rm",
 		"mkdir", "rmdir", "log", "cat", "diff", "snapshot", "restore", "export", "version"}
 	for _, n := range names {
 		fmt.Fprintf(w, "  %-60s %s\n", commands[n].usage, commands[n].help)
 	}
 	fmt.Fprint(w, `
 --json prints the API's JSON (errors go to stderr as the API sent them).
+Links (show, open, and new/put on stderr) are clickable in terminals that support it.
 Config: EMD_TOKEN and EMD_URL, else ~/.config/emd/config.json (written by emd login).
 Exit codes: 0 ok, 1 unexpected, 2 usage, 3 conflict, 4 auth, 5 payment, 6 not found,
 7 rate limited, 8 validation or limits.
