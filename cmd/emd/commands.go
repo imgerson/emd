@@ -209,7 +209,7 @@ func cmdSearch(a *app, args []string) error {
 	for _, d := range res.Documents {
 		snippet := ""
 		if d.Snippet != nil {
-			snippet = "  " + *d.Snippet
+			snippet = "  " + noControls(*d.Snippet) // cut from content, which may hold escapes
 		}
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s%s\n", d.ID, d.Status, d.Path, d.Title, snippet)
 	}
