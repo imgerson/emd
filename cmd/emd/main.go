@@ -34,6 +34,7 @@ type app struct {
 	errOut io.Writer
 	in     io.Reader
 	json   bool
+	getenv func(string) string
 }
 
 type command struct {
@@ -68,6 +69,7 @@ func init() {
 		"snapshot": {"snapshot ID [--name N]", "save a named snapshot", cmdSnapshot, false},
 		"restore":  {"restore ID REV", "restore a past version (the server keeps a backup snapshot)", cmdRestore, false},
 		"export":   {"export DIR", "write every document to DIR as Markdown files, plus manifest.json", cmdExport, false},
+		"skill":    {"skill [install [--dir DIR]]", "print the agent skill, or install it for Claude Code (~/.claude/skills)", cmdSkill, true},
 		"version":  {"version", "print the version", func(a *app, _ []string) error { fmt.Fprintln(a.out, "emd", version); return nil }, true},
 	}
 }
@@ -101,7 +103,7 @@ func run(args []string, in io.Reader, out, errOut io.Writer, getenv func(string)
 		return api.ExitUsage
 	}
 
-	a := &app{out: out, errOut: errOut, in: in, json: jsonOut}
+	a := &app{out: out, errOut: errOut, in: in, json: jsonOut, getenv: getenv}
 	if !cmd.noKey {
 		cfg, err := loadConfig(getenv)
 		if err != nil {
@@ -152,7 +154,7 @@ func hint(err error) string {
 func printHelp(w io.Writer) {
 	fmt.Fprintf(w, "emd %s: the command line for easymarkdown\n\nusage: emd COMMAND [ARGS] [--json]\n\n", version)
 	names := []string{"login", "ls", "tree", "search", "get", "show", "open", "new", "put", "status", "rename", "mv", "rm",
-		"mkdir", "rmdir", "log", "cat", "diff", "snapshot", "restore", "export", "version"}
+		"mkdir", "rmdir", "log", "cat", "diff", "snapshot", "restore", "export", "skill", "version"}
 	for _, n := range names {
 		fmt.Fprintf(w, "  %-60s %s\n", commands[n].usage, commands[n].help)
 	}

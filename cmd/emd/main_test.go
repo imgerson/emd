@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	assets "github.com/imgerson/emd"
 	"github.com/imgerson/emd/internal/api"
 )
 
@@ -260,5 +261,28 @@ func TestSearchSnippetCannotDriveTheTerminal(t *testing.T) {
 	}
 	if strings.ContainsAny(out, "\x1b\x07\u009b") {
 		t.Fatalf("control characters reached the terminal: %q", out)
+	}
+}
+
+func TestSkillPrintsAndInstalls(t *testing.T) {
+	home := t.TempDir()
+	env := func(k string) string { return map[string]string{"HOME": home}[k] }
+	var out, errOut bytes.Buffer
+	if code := run([]string{"skill"}, strings.NewReader(""), &out, &errOut, env); code != 0 || out.String() != string(assets.Skill) {
+		t.Fatalf("emd skill: code %d, stderr %q", code, errOut.String())
+	}
+	if !strings.HasPrefix(out.String(), "---\nname: easymarkdown-plans\n") {
+		t.Fatalf("not a skill: %q", out.String()[:40])
+	}
+	out.Reset()
+	if code := run([]string{"skill", "install"}, strings.NewReader(""), &out, &errOut, env); code != 0 {
+		t.Fatalf("install: code %d, stderr %q", code, errOut.String())
+	}
+	got, err := os.ReadFile(filepath.Join(home, ".claude", "skills", "easymarkdown-plans", "SKILL.md"))
+	if err != nil || string(got) != string(assets.Skill) {
+		t.Fatalf("installed file: %v", err)
+	}
+	if code := run([]string{"skill", "install"}, strings.NewReader(""), &out, &errOut, func(string) string { return "" }); code == 0 {
+		t.Fatal("install without HOME or --dir should fail")
 	}
 }
