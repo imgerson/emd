@@ -1,0 +1,12 @@
+{
+  "name": "easymarkdown",
+  "description": "easymarkdown plugins for Claude Code",
+  "owner": { "name": "imgerson" },
+  "plugins": [
+    {
+      "name": "emd",
+      "source": "./plugins/emd",
+      "description": "Keep the main plan for your work in easymarkdown, with every revision"
+    }
+  ]
+}

@@ -84,6 +84,30 @@ on `429`. Your browser has its own limit, so a script never slows the editor dow
 
 ## For agents
 
+### The easymarkdown-plans skill
+
+Teaches an agent to keep the **main plan** for a piece of work in easymarkdown: saved on
+approval or a real change (never per step), one project per repository, folders only once a
+project grows, and never as a scratchpad.
+
+Claude Code, as a plugin (updates with `/plugin`):
+
+```
+/plugin install emd --marketplace imgerson/emd
+```
+
+On Claude Code before 2.1.275: `/plugin marketplace add imgerson/emd`, then
+`/plugin install emd@easymarkdown`. It runs as `/emd:easymarkdown-plans`, or on its own when
+you ask to save a plan.
+
+Or as a personal skill, from the CLI: `emd skill install` (writes
+`~/.claude/skills/easymarkdown-plans/SKILL.md`). Other agents: `emd skill` prints it, or read
+<https://easymarkdown.io/llms.txt>.
+
+The agent needs `EMD_TOKEN` (Settings -> API keys, `documents:write`) in its environment.
+
+### By hand
+
 ```bash
 # Keep the plan for this repo in easymarkdown, create or update
 P=$(emd mkdir "$(basename "$PWD")")
